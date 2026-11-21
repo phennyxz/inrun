@@ -1,0 +1,25 @@
+name: INRUN conformance
+on:
+  push:
+  pull_request:
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - name: Clone COVIL VLG experimental spec
+        run: git clone --depth=1 https://github.com/phennyxz/covil-game-spec.git ../covil-game-spec
+      - name: Build and validate VLG
+        run: |
+          node tools/build-vlg.mjs ../covil-game-spec ./inrun.vlg
+          node ../covil-game-spec/tools/validate-vlg.mjs ./inrun.vlg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: inrun-vlg-unsigned
+          path: inrun.vlg
