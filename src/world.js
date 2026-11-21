@@ -1,0 +1,6 @@
+export const CHUNK_LENGTH=5;
+export function rng(seed){let s=(seed>>>0)||1;return ()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+export function chunk(seed,index){const rand=rng((seed^Math.imul(index+1,0x9e3779b1))>>>0);const lanes=[-1,0,1];for(let i=2;i>0;i--){const j=Math.floor(rand()*(i+1));[lanes[i],lanes[j]]=[lanes[j],lanes[i]];}
+const count=index<2?0:(rand()<Math.min(.73,.35+index*.006)?(rand()<.24?2:1):0);
+return {index,safeLane:lanes[count]??0,obstacles:lanes.slice(0,count).map((lane,i)=>({lane,type:rand()<.52?'rock':'log',at:index*5+2.4+i*.06})),coins:rand()<.68?[{lane:lanes[count]??0,at:index*5+3.65}]:[],scenery:Array.from({length:3},(_,i)=>({lane:i%2?-2.2:2.2,at:index*5+i*1.55+rand()*.5,type:rand()<.4?'tree':rand()<.55?'bush':'tuft'}))};}
+export function createWorld(seed){const cache=new Map();return {seed,get(index){if(index<0)return null;if(!cache.has(index))cache.set(index,chunk(seed,index));return cache.get(index);},range(from,to){const out=[];for(let i=Math.max(0,Math.floor(from/5));i<=Math.floor(to/5);i++)out.push(this.get(i));for(const k of cache.keys())if(k<Math.floor(from/5)-3)cache.delete(k);return out;}};}
